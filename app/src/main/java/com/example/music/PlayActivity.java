@@ -2,6 +2,7 @@ package com.example.music;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,22 +13,35 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
 public class PlayActivity extends AppCompatActivity {
     private MusicDatabaseHelper dbHelper;
     Button btOn = null;
+    Button btNext = null;
+    Button btLast = null;
     MediaPlayer mediaPlayer = new MediaPlayer();
     SeekBar bar = null;
     boolean isChanging = true;
     Song song = null;
+    Song song1 = new Song();; //用于歌单
     TextView currentTime = null;
     TextView allTime = null;
+    ListView listView = null;
+    TextView songName = null;
+
+
+
+    public DrawerLayout drawerLayout;
 
     Handler handler = new Handler(){
         @Override
@@ -43,48 +57,48 @@ public class PlayActivity extends AppCompatActivity {
         dbHelper = new MusicDatabaseHelper(this, "SongPaper.db", null, 1);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
+        drawerLayout = findViewById(R.id.drawer_layout);
         btOn = findViewById(R.id.onPause);
+        btNext = findViewById(R.id.next);
+        btLast = findViewById(R.id.last);
         bar = findViewById(R.id.seekbar);
         currentTime = findViewById(R.id.currentTime);
         allTime = findViewById(R.id.allTime);
+        songName = findViewById(R.id.song_name);
+        LayoutInflater inflater = getLayoutInflater();
+        View viewOfFragment = inflater.inflate(R.layout.songpaper, null);
+        listView = viewOfFragment.findViewById(R.id.list_view);
 
         Intent intent = getIntent();
         song = (Song) intent.getSerializableExtra("song");
-        Log.e("name", song.song);
-        Log.e("path", song.path);
+//        Log.e("name", song.song);
+//        Log.e("path", song.path);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        song1.song = song.song;
+        song1.path = song.path;
+
+        if(song.equals(song1))
+            Log.e("compare","相同");
+        else
+            Log.e("compare","不同");
+
+
+
 
         String sql = "insert into song(name, path, idOfPaper) values(?,?,?)";
         String sql1 = "select * from song where name = ? and idOfPaper = ?";
         Cursor cursor = db.rawQuery(sql1, new String[]{song.song, String.valueOf(1)});
         if(cursor.moveToNext()){
-            return;
         }
         else
             db.execSQL(sql, new String[]{song.song, song.path, String.valueOf(1)});
 
+        //intent = getIntent();
+        String path = intent.getStringExtra("uri");
+        playMusic(song1);
 
 
-//        try {
-//            //mediaPlayer.release();
-//            mediaPlayer.reset();
-//
-//            Intent intent = getIntent();
-//            String path = intent.getStringExtra("uri");
-//            Log.e("path", path);
-//            Uri uri = Uri.parse(path);
-//            mediaPlayer.setDataSource(path);
-//            mediaPlayer.prepare();
-//            mediaPlayer.setLooping(true);
-//            bar.setMax(mediaPlayer.getDuration());
-//            allTime.setText("/" + formatTime(mediaPlayer.getDuration()));
-//            Log.e("max", String.valueOf(bar.getProgress()));
-//            mediaPlayer.start();
-//            new Thread(new SeekBarThread()).start();
-//           // new Thread(new SeekBarThread()).start();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -116,13 +130,36 @@ public class PlayActivity extends AppCompatActivity {
                 }
             }
         });
+
+        btLast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SongPaperFragment songPaperFragment = (SongPaperFragment) getSupportFragmentManager().findFragmentById(R.id.songpaper);
+                Log.e("当前音乐", song.song);
+                songPaperFragment.last(song1);
+            }
+        });
+
+
+
+        btNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SongPaperFragment songPaperFragment = (SongPaperFragment) getSupportFragmentManager().findFragmentById(R.id.songpaper);
+                //Log.e("当前音乐", song.song);
+                songPaperFragment.next(song1);
+            }
+        });
+
+
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         if (mediaPlayer.isPlaying()) {
-            //hmediaPlayer.pause();
+            mediaPlayer.pause();
         }
     }
 
@@ -176,6 +213,36 @@ public class PlayActivity extends AppCompatActivity {
         }
 
     }
+
+    public void playMusic(Song song){
+        try {
+            songName.setText(song.song);
+            song1.song =song.song;
+            Log.e("next",song1.song);
+            song1.path = song.path;
+            String path = song.path;
+            //mediaPlayer.release();
+            Log.e("play", "zhixing");
+            mediaPlayer.reset();
+
+
+            Log.e("path", path);
+            Uri uri = Uri.parse(path);
+            mediaPlayer.setDataSource(path);
+            mediaPlayer.prepare();
+            mediaPlayer.setLooping(true);
+            bar.setMax(mediaPlayer.getDuration());
+            allTime.setText("/" + formatTime(mediaPlayer.getDuration()));
+            Log.e("max", String.valueOf(bar.getProgress()));
+            mediaPlayer.start();
+            new Thread(new SeekBarThread()).start();
+            // new Thread(new SeekBarThread()).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
 
 

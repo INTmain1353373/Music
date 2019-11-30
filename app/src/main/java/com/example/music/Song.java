@@ -1,5 +1,7 @@
 package com.example.music;
 
+import androidx.annotation.Nullable;
+
 import java.io.Serializable;
 
 public class Song implements Serializable {
@@ -23,4 +25,14 @@ public class Song implements Serializable {
      * 歌曲的大小
      */
     public long size;
+
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        Song song =(Song) obj;
+        if(this.song.equals(song.song) && this.path.equals(song.path)){
+            return true;
+        }
+        else return false;
+    }
 }

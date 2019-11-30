@@ -27,7 +27,7 @@ public class MySongAdapter extends ArrayAdapter<Song> {
         Song song = getItem(position);
         View view = LayoutInflater.from(getContext()).inflate(resourceId, parent, false);
         TextView songName = (TextView) view.findViewById(R.id.name);
-        Button btRemove = (Button) view.findViewById(R.id.btRemove);
+        //Button btRemove = (Button) view.findViewById(R.id.btRemove);
         songName.setText(song.song);
         return view;
     }

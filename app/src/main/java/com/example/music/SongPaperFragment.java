@@ -1,15 +1,19 @@
 package com.example.music;
 
+import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,6 +55,18 @@ public class SongPaperFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                //Toast.makeText(getContext(), "click", Toast.LENGTH_LONG).show();
+                PlayActivity activity =(PlayActivity) getActivity();
+                Song song = dataList.get(position);
+
+                activity.drawerLayout.closeDrawers();
+                activity.playMusic(song);
+            }
+        });
     }
 
     private void initSong(){
@@ -65,5 +81,38 @@ public class SongPaperFragment extends Fragment {
             dataList.add(song);
         }
     }
+
+    public void next(Song song){
+//        Log.e("0", dataList.get(0).song);
+//        Log.e("传入name", song.song);
+//        Log.e("path", dataList.get(0).path);
+//        Log.e("传入path",song.path);
+
+        int position = dataList.indexOf(song);
+        //Log.e("当前位置", String.valueOf(position));
+        position = (position + 1) % dataList.size();
+        PlayActivity activity =(PlayActivity) getActivity();
+        Song song1 = dataList.get(position);
+
+        //activity.drawerLayout.closeDrawers();
+        activity.playMusic(song1);
+
+    }
+
+    public void last(Song song){
+        int position = dataList.indexOf(song);
+        Log.e("当前位置", String.valueOf(position));
+        if(position != 0)
+        position = (position - 1) % dataList.size();
+        else
+            position = dataList.size() - 1;
+        PlayActivity activity =(PlayActivity) getActivity();
+        Song song1 = dataList.get(position);
+
+        //activity.drawerLayout.closeDrawers();
+        activity.playMusic(song1);
+    }
+
+
 
 }
