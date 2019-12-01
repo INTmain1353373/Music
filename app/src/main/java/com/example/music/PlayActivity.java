@@ -38,7 +38,7 @@ public class PlayActivity extends AppCompatActivity {
     TextView allTime = null;
     ListView listView = null;
     TextView songName = null;
-
+    SongPaperFragment songPaperFragment;
 
 
     public DrawerLayout drawerLayout;
@@ -68,7 +68,7 @@ public class PlayActivity extends AppCompatActivity {
         LayoutInflater inflater = getLayoutInflater();
         View viewOfFragment = inflater.inflate(R.layout.songpaper, null);
         listView = viewOfFragment.findViewById(R.id.list_view);
-
+        songPaperFragment = (SongPaperFragment) getSupportFragmentManager().findFragmentById(R.id.songpaper);
         Intent intent = getIntent();
         song = (Song) intent.getSerializableExtra("song");
 //        Log.e("name", song.song);
@@ -95,6 +95,7 @@ public class PlayActivity extends AppCompatActivity {
             db.execSQL(sql, new String[]{song.song, song.path, String.valueOf(1)});
 
         //intent = getIntent();
+        songPaperFragment.refresh();
         String path = intent.getStringExtra("uri");
         playMusic(song1);
 
@@ -134,7 +135,7 @@ public class PlayActivity extends AppCompatActivity {
         btLast.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SongPaperFragment songPaperFragment = (SongPaperFragment) getSupportFragmentManager().findFragmentById(R.id.songpaper);
+
                 Log.e("当前音乐", song.song);
                 songPaperFragment.last(song1);
             }
@@ -145,7 +146,6 @@ public class PlayActivity extends AppCompatActivity {
         btNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SongPaperFragment songPaperFragment = (SongPaperFragment) getSupportFragmentManager().findFragmentById(R.id.songpaper);
                 //Log.e("当前音乐", song.song);
                 songPaperFragment.next(song1);
             }
@@ -214,7 +214,7 @@ public class PlayActivity extends AppCompatActivity {
 
     }
 
-    public void playMusic(Song song){
+    public void playMusic(final Song song){
         try {
             songName.setText(song.song);
             song1.song =song.song;
@@ -230,7 +230,15 @@ public class PlayActivity extends AppCompatActivity {
             Uri uri = Uri.parse(path);
             mediaPlayer.setDataSource(path);
             mediaPlayer.prepare();
-            mediaPlayer.setLooping(true);
+            //mediaPlayer.setLooping(true);
+
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    songPaperFragment.next(song);
+                }
+            });
+
             bar.setMax(mediaPlayer.getDuration());
             allTime.setText("/" + formatTime(mediaPlayer.getDuration()));
             Log.e("max", String.valueOf(bar.getProgress()));
